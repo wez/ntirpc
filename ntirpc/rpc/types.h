@@ -38,7 +38,7 @@
 #ifndef _TIRPC_TYPES_H
 #define _TIRPC_TYPES_H
 
-#ifdef _MSC_VER
+#if (_MSC_VER < 1800)
 #include <misc/stdint.h>
 #else
 #include <stdint.h>
@@ -53,7 +53,10 @@
 /* integral types */
 #ifndef _MSC_VER
 #include <_bsd_types.h>		/* XXX mingw (defines u_long) */
+#else
+typedef unsigned long u_long;
 #endif
+
 typedef uint8_t u_char;
 typedef uint16_t u_int16_t;
 typedef uint16_t u_short_t;
@@ -74,8 +77,10 @@ struct iovec {
 	size_t iov_len;
 };
 
-#include <winsock2.h>
-#include <ws2tcpip.h>		/* XXX mingw */
+
+//#include <Windows.h>
+//#include <winsock2.h>
+//#include <ws2tcpip.h>		/* XXX mingw */
 
 #endif
 
@@ -170,7 +175,7 @@ typedef struct tirpc_pkg_params {
 
 extern tirpc_pkg_params __pkg_params;
 
-#include <misc/abstract_atomic.h>
+#include <atomic_ops.h>
 
 #define __warnx(flags, ...) \
 	do {					   \

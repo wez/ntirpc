@@ -52,7 +52,7 @@
 /*
  * XDR xdr_opaque_auth
  */
-static inline bool
+static_inline bool
 inline_xdr_opaque_auth(XDR *xdrs, struct opaque_auth *oa)
 {
 	if (!

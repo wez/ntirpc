@@ -48,7 +48,7 @@
 
 #include <rpc/xdr.h>
 #include <rpc/clnt_stat.h>
-#include <misc/abstract_atomic.h>
+#include <atomic_ops.h>
 
 #include <sys/cdefs.h>
 #if !defined(_WIN32)
@@ -204,12 +204,12 @@ typedef struct __auth {
 	int ah_refcnt;
 } AUTH;
 
-static inline int auth_get(AUTH *auth)
+static_inline int auth_get(AUTH *auth)
 {
 	return atomic_add_int32_t(&auth->ah_refcnt, 1);
 }
 
-static inline int auth_put(AUTH *auth)
+static_inline int auth_put(AUTH *auth)
 {
 	return atomic_sub_int32_t(&auth->ah_refcnt, 1);
 }

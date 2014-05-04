@@ -27,7 +27,6 @@
 #define WAIT_QUEUE_H
 
 #include <errno.h>
-#include <pthread.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <misc/queue.h>
@@ -51,26 +50,26 @@ typedef struct wait_q_entry {
 	 TAILQ_HEAD(we_tailq, waiter) waitq;
 } wait_q_entry_t;
 
-static inline void init_wait_entry(wait_entry_t *we)
+static_inline void init_wait_entry(wait_entry_t *we)
 {
 	mutex_init(&we->mtx, NULL);
 	pthread_cond_init(&we->cv, NULL);
 }
 
-static inline void destroy_wait_entry(wait_entry_t *we)
+static_inline void destroy_wait_entry(wait_entry_t *we)
 {
 	mutex_destroy(&we->mtx);
 	cond_destroy(&we->cv);
 }
 
-static inline void init_wait_q_entry(wait_q_entry_t *wqe)
+static_inline void init_wait_q_entry(wait_q_entry_t *wqe)
 {
 	TAILQ_INIT(&wqe->waitq);
 	init_wait_entry(&wqe->lwe);
 	init_wait_entry(&wqe->rwe);
 }
 
-static inline void thread_delay_ms(unsigned long ms)
+static_inline void thread_delay_ms(unsigned long ms)
 {
 	struct timespec then = {
 		.tv_sec = ms / 1000,

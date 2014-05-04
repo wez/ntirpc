@@ -217,7 +217,7 @@ typedef bool(*xdrproc_t) (XDR *, ...);
 #define xdr_putlong(xdrs, longp)		\
 	(*(xdrs)->x_ops->x_putlong)(xdrs, longp)
 
-static inline int
+static_inline int
 xdr_getint32(XDR *xdrs, int32_t *ip)
 {
 	long l;
@@ -228,7 +228,7 @@ xdr_getint32(XDR *xdrs, int32_t *ip)
 	return (true);
 }
 
-static inline int
+static_inline int
 xdr_putint32(XDR *xdrs, int32_t *ip)
 {
 	long l;

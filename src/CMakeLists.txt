@@ -8,8 +8,21 @@ add_definitions(
 # XXX FreeBSD?
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
 
+# anything with .. is temporary
+if (WIN32)
+   add_definitions(
+     -DWIN32_LEAN_AND_MEAN
+   )
+   set(winclude_dirs
+   win
+   win/sys
+   ../libatomic_ops-7.2/src)
+endif()
+
 include_directories(
-  ${PROJECT_SOURCE_DIR}/tirpc
+  ${PROJECT_SOURCE_DIR}/ntirpc
+  ${PROJECT_SOURCE_DIR}/../ntirpc
+  ${winclude_dirs}
 )
 
 ########### next target ###############
@@ -114,6 +127,7 @@ add_library(ntirpc STATIC
 
 target_link_libraries(ntirpc ${CMAKE_THREAD_LIBS_INIT})
 
+set_target_properties(ntirpc PROPERTIES LINKER_LANGUAGE CXX)
 # fixme!
 set_target_properties(ntirpc PROPERTIES VERSION 4.2.0 SOVERSION 4)
 install(TARGETS ntirpc DESTINATION bin)

@@ -62,7 +62,7 @@
  * Free a data structure using XDR
  * Not a filter, but a convenient utility nonetheless
  */
-static inline void
+static_inline void
 inline_xdr_free(xdrproc_t proc, void *objp)
 {
 	XDR x;
@@ -74,7 +74,7 @@ inline_xdr_free(xdrproc_t proc, void *objp)
 /*
  * XDR nothing
  */
-static inline bool
+static_inline bool
 inline_xdr_void(void)
 {
 	return (true);
@@ -83,7 +83,7 @@ inline_xdr_void(void)
 /*
  * XDR integers
  */
-static inline bool
+static_inline bool
 inline_xdr_int(XDR *xdrs, int *ip)
 {
 	long l;
@@ -110,7 +110,7 @@ inline_xdr_int(XDR *xdrs, int *ip)
 /*
  * XDR unsigned integers
  */
-static inline bool
+static_inline bool
 inline_xdr_u_int(XDR *xdrs, u_int *up)
 {
 	u_long l;
@@ -138,7 +138,7 @@ inline_xdr_u_int(XDR *xdrs, u_int *up)
  * XDR long integers
  * same as xdr_u_long - open coded to save a proc call!
  */
-static inline bool
+static_inline bool
 inline_xdr_long(XDR *xdrs, long *lp)
 {
 	switch (xdrs->x_op) {
@@ -157,7 +157,7 @@ inline_xdr_long(XDR *xdrs, long *lp)
  * XDR unsigned long integers
  * same as xdr_long - open coded to save a proc call!
  */
-static inline bool
+static_inline bool
 inline_xdr_u_long(XDR *xdrs, u_long *ulp)
 {
 	switch (xdrs->x_op) {
@@ -176,7 +176,7 @@ inline_xdr_u_long(XDR *xdrs, u_long *ulp)
  * XDR 32-bit integers
  * same as xdr_u_int32_t - open coded to save a proc call!
  */
-static inline bool
+static_inline bool
 inline_xdr_int32_t(XDR *xdrs, int32_t *int32_p)
 {
 	long l;
@@ -204,7 +204,7 @@ inline_xdr_int32_t(XDR *xdrs, int32_t *int32_p)
  * XDR unsigned 32-bit integers
  * same as xdr_int32_t - open coded to save a proc call!
  */
-static inline bool
+static_inline bool
 inline_xdr_u_int32_t(XDR *xdrs, u_int32_t *u_int32_p)
 {
 	u_long l;
@@ -231,7 +231,7 @@ inline_xdr_u_int32_t(XDR *xdrs, u_int32_t *u_int32_p)
 /*
  * XDR short integers
  */
-static inline bool
+static_inline bool
 inline_xdr_short(XDR *xdrs, short *sp)
 {
 	long l;
@@ -258,7 +258,7 @@ inline_xdr_short(XDR *xdrs, short *sp)
 /*
  * XDR unsigned short integers
  */
-static inline bool
+static_inline bool
 inline_xdr_u_short(XDR *xdrs, u_short *usp)
 {
 	u_long l;
@@ -285,7 +285,7 @@ inline_xdr_u_short(XDR *xdrs, u_short *usp)
 /*
  * XDR 16-bit integers
  */
-static inline bool
+static_inline bool
 inline_xdr_int16_t(XDR *xdrs, int16_t *int16_p)
 {
 	long l;
@@ -312,7 +312,7 @@ inline_xdr_int16_t(XDR *xdrs, int16_t *int16_p)
 /*
  * XDR unsigned 16-bit integers
  */
-static inline bool
+static_inline bool
 inline_xdr_u_int16_t(XDR *xdrs, u_int16_t *u_int16_p)
 {
 	u_long l;
@@ -339,7 +339,7 @@ inline_xdr_u_int16_t(XDR *xdrs, u_int16_t *u_int16_p)
 /*
  * XDR a char
  */
-static inline bool
+static_inline bool
 inline_xdr_char(XDR *xdrs, char *cp)
 {
 	int i;
@@ -354,7 +354,7 @@ inline_xdr_char(XDR *xdrs, char *cp)
 /*
  * XDR an unsigned char
  */
-static inline bool
+static_inline bool
 inline_xdr_u_char(XDR *xdrs, u_char *cp)
 {
 	u_int u;
@@ -369,7 +369,7 @@ inline_xdr_u_char(XDR *xdrs, u_char *cp)
 /*
  * XDR booleans
  */
-static inline bool
+static_inline bool
 inline_xdr_bool(XDR *xdrs, bool_t *bp)
 {
 	long lb;
@@ -396,7 +396,7 @@ inline_xdr_bool(XDR *xdrs, bool_t *bp)
 /*
  * XDR enumerations
  */
-static inline bool
+static_inline bool
 inline_xdr_enum(XDR *xdrs, enum_t *ep)
 {
 	enum sizecheck { SIZEVAL };	/* used to find the size of an enum */
@@ -420,7 +420,7 @@ inline_xdr_enum(XDR *xdrs, enum_t *ep)
  * Allows the specification of a fixed size sequence of opaque bytes.
  * cp points to the opaque object and cnt gives the byte length.
  */
-static inline bool
+static_inline bool
 inline_xdr_opaque(XDR *xdrs, caddr_t cp, u_int cnt)
 {
 	u_int rndup;
@@ -471,7 +471,7 @@ inline_xdr_opaque(XDR *xdrs, caddr_t cp, u_int cnt)
  * *cpp is a pointer to the bytes, *sizep is the count.
  * If *cpp is NULL maxsize bytes are allocated
  */
-static inline bool
+static_inline bool
 inline_xdr_bytes(XDR *xdrs, char **cpp, u_int *sizep,
 		 u_int maxsize)
 {
@@ -521,7 +521,7 @@ inline_xdr_bytes(XDR *xdrs, char **cpp, u_int *sizep,
 /*
  * Implemented here due to commonality of the object.
  */
-static inline bool
+static_inline bool
 inline_xdr_netobj(XDR *xdrs, struct netobj *np)
 {
 
@@ -540,7 +540,7 @@ inline_xdr_netobj(XDR *xdrs, struct netobj *np)
  * routine may be called.
  * If there is no specific or default routine an error is returned.
  */
-static inline bool
+static_inline bool
 inline_xdr_union(XDR *xdrs, enum_t *dscmp,
   /* enum to decide which arm to work on */
 		 char *unp,	/* the union itself */
@@ -585,7 +585,7 @@ inline_xdr_union(XDR *xdrs, enum_t *dscmp,
  * storage is allocated.  The last parameter is the max allowed length
  * of the string as specified by a protocol.
  */
-static inline bool
+static_inline bool
 inline_xdr_string(XDR *xdrs, char **cpp, u_int maxsize)
 {
 	char *sp = *cpp;	/* sp is the actual string pointer */
@@ -652,7 +652,7 @@ inline_xdr_string(XDR *xdrs, char **cpp, u_int maxsize)
  * Wrapper for xdr_string that can be called directly from
  * routines like clnt_call
  */
-static inline bool
+static_inline bool
 inline_xdr_wrapstring(XDR *xdrs, char **cpp)
 {
 	return inline_xdr_string(xdrs, cpp, LASTUNSIGNED);
@@ -669,7 +669,7 @@ inline_xdr_wrapstring(XDR *xdrs, char **cpp)
 /*
  * XDR 64-bit integers
  */
-static inline bool
+static_inline bool
 inline_xdr_int64_t(XDR *xdrs, int64_t *llp)
 {
 	u_long ul[2];
@@ -699,7 +699,7 @@ inline_xdr_int64_t(XDR *xdrs, int64_t *llp)
 /*
  * XDR unsigned 64-bit integers
  */
-static inline bool
+static_inline bool
 inline_xdr_u_int64_t(XDR *xdrs, u_int64_t *ullp)
 {
 	u_long ul[2];
@@ -729,7 +729,7 @@ inline_xdr_u_int64_t(XDR *xdrs, u_int64_t *ullp)
 /*
  * XDR hypers
  */
-static inline bool
+static_inline bool
 inline_xdr_hyper(XDR *xdrs, quad_t *llp)
 {
 
@@ -743,7 +743,7 @@ inline_xdr_hyper(XDR *xdrs, quad_t *llp)
 /*
  * XDR unsigned hypers
  */
-static inline bool
+static_inline bool
 inline_xdr_u_hyper(XDR *xdrs, u_quad_t *ullp)
 {
 
@@ -757,7 +757,7 @@ inline_xdr_u_hyper(XDR *xdrs, u_quad_t *ullp)
 /*
  * XDR longlong_t's
  */
-static inline bool
+static_inline bool
 inline_xdr_longlong_t(XDR *xdrs, quad_t *llp)
 {
 
@@ -771,7 +771,7 @@ inline_xdr_longlong_t(XDR *xdrs, quad_t *llp)
 /*
  * XDR u_longlong_t's
  */
-static inline bool
+static_inline bool
 inline_xdr_u_longlong_t(XDR *xdrs, u_quad_t *ullp)
 {
 

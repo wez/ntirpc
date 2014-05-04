@@ -40,6 +40,7 @@
 
 #if defined(_WIN32)
 #include <misc/winpthreads.h>
+#include <sys/cdefs.h>
 #else
 #include <pthread.h>
 #endif
@@ -59,9 +60,9 @@
 #define RWLOCK_INITIALIZER	PTHREAD_RWLOCK_INITIALIZER
 #define ONCE_INITIALIZER	PTHREAD_ONCE_INIT
 
-static inline int
+static_inline int
 mutex_init(pthread_mutex_t *m, const pthread_mutexattr_t *a
-			     __attribute__ ((unused)))
+			     attribute_unused)
 {
 	pthread_mutexattr_t attr;
 	int rslt;

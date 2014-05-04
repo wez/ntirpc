@@ -36,7 +36,7 @@
 #include <rpc/rpc.h>
 #include <misc/rbtree_x.h>
 #include <misc/queue.h>
-#include <misc/abstract_atomic.h>
+#include <atomic_ops.h>
 #include <intrinsic.h>
 
 #ifdef HAVE_HEIMDAL

@@ -56,7 +56,7 @@
 #include <errno.h>
 #include <sys/timeb.h>
 
-#if !defined(__MINGW32__)	/* XXX 64? */
+#if !defined(__MINGW32__) && (_MSC_VER < 1800)	/* XXX 64? */
 #define ETIMEDOUT	110
 #define ENOTSUP		134
 #endif
@@ -129,7 +129,7 @@ struct _pthread_v {
 	uintptr_t h;
 	int cancelled;
 	unsigned p_state;
-	int keymax;
+	unsigned long keymax;
 	void **keyval;
 
 	jmp_buf jb;
@@ -186,8 +186,8 @@ DWORD _pthread_tls;
 
 /* Note initializer is zero, so this works */
 pthread_rwlock_t _pthread_key_lock;
-long _pthread_key_max;
-long _pthread_key_sch;
+unsigned long _pthread_key_max;
+unsigned long _pthread_key_sch;
 void (**_pthread_key_dest) (void *);
 
 #define pthread_cleanup_push(F, A)					\
@@ -390,7 +390,8 @@ pthread_tls_init(void)
 static void
 _pthread_cleanup_dest(pthread_t t)
 {
-	int i, j;
+	unsigned long i;
+	int j;
 
 	for (j = 0; j < PTHREAD_DESTRUCTOR_ITERATIONS; j++) {
 		int flag = 0;
@@ -503,7 +504,7 @@ _pthread_time_in_ms(void)
 {
 	struct __timeb64 tb;
 
-	_ftime64(&tb);
+	_ftime64_s(&tb);
 
 	return tb.time * 1000 + tb.millitm;
 }
@@ -812,11 +813,10 @@ pthread_setcanceltype(int type, int *oldtype)
 	return 0;
 }
 
-static unsigned int
+static unsigned int __stdcall
 pthread_create_wrapper(void *args)
 {
 	struct _pthread_v *tv = args;
-	int i, j;
 
 	_pthread_once_raw(&_pthread_tls_once, pthread_tls_init);
 
@@ -1041,7 +1041,7 @@ pthread_mutex_timedlock(pthread_mutex_t *m, struct timespec *ts)
 			return ETIMEDOUT;
 
 		/* Wait on semaphore within critical section */
-		WaitForSingleObject(((struct _pthread_crit_t *)m)->sem, t - ct);
+		WaitForSingleObject(((struct _pthread_crit_t *)m)->sem, (DWORD)(t - ct));
 
 		/* Try to grab lock */
 		if (!pthread_mutex_trylock(m))
@@ -1161,7 +1161,7 @@ pthread_barrierattr_getpshared(void **attr, int *s)
 static int
 pthread_key_create(pthread_key_t *key, void (*dest) (void *))
 {
-	int i;
+	unsigned long i;
 	long nmax;
 	void (**d) (void *);
 
@@ -1386,7 +1386,7 @@ pthread_cond_timedwait(pthread_cond_t *c, pthread_mutex_t *m,
 
 	pthread_testcancel();
 
-	if (!SleepConditionVariableCS(c, m, tm))
+	if (!SleepConditionVariableCS(c, m, (DWORD) tm))
 		return ETIMEDOUT;
 
 	/* We can have a spurious wakeup after the timeout */
@@ -1460,6 +1460,8 @@ pthread_rwlockattr_setpshared(pthread_rwlockattr_t *a, int s)
 /* Windows has rudimentary signals support */
 #define pthread_kill(T, S) 0
 #define pthread_sigmask(H, S1, S2) 0
+
+#if 0 /* for now, we are not concerning ourselves with thread cancellation */
 
 /* Wrap cancellation points -- seems incompatible with decls in stdio.h */
 #define accept(...) (pthread_testcancel(), accept(__VA_ARGS__))
@@ -1720,5 +1722,7 @@ pthread_rwlockattr_setpshared(pthread_rwlockattr_t *a, int s)
 #define wordexp(...) (pthread_testcancel(), wordexp(__VA_ARGS__))
 #define wprintf(...) (pthread_testcancel(), wprintf(__VA_ARGS__))
 #define wscanf(...) (pthread_testcancel(), wscanf(__VA_ARGS__))
+
+#endif /* cancellation */
 
 #endif				/* WIN_PTHREADS */

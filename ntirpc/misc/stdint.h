@@ -53,6 +53,8 @@ extern "C" {
 }
 #endif
 
+#if (_MSC_VER < 1800)
+
 /* Define _W64 macros to mark types changing their size, like intptr_t. */
 #ifndef _W64
 #if !defined(__midl) && (defined(_X86_) || defined(_M_IX86)) && _MSC_VER >= 1300
@@ -241,6 +243,8 @@ typedef uint64_t uintmax_t;
 /* 7.18.4.2 Macros for greatest-width integer constants */
 #define INTMAX_C   INT64_C
 #define UINTMAX_C  UINT64_C
+
+#endif /* _MSC_VER < 1800 */
 
 #endif				/* __STDC_CONSTANT_MACROS */
 #endif				/* _MSC_STDINT_H_ */

@@ -96,7 +96,7 @@ void __xprt_set_raddr(SVCXPRT *, const struct sockaddr_storage *);
 
 #include <string.h>
 
-static inline char *
+static_inline char *
 rpc_strdup(const char *s)
 {
 	char *t = mem_alloc(strlen(s) + 1);
