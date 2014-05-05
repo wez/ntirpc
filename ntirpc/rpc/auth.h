@@ -201,17 +201,17 @@ typedef struct __auth {
 
 	} *ah_ops;
 	void *ah_private;
-	int ah_refcnt;
+	AO_t ah_refcnt;
 } AUTH;
 
 static_inline int auth_get(AUTH *auth)
 {
-	return atomic_add_int32_t(&auth->ah_refcnt, 1);
+	return AO_fetch_and_add1(&auth->ah_refcnt);
 }
 
 static_inline int auth_put(AUTH *auth)
 {
-	return atomic_sub_int32_t(&auth->ah_refcnt, 1);
+	return AO_fetch_and_sub1(&auth->ah_refcnt);
 }
 
 /*
