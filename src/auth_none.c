@@ -120,29 +120,28 @@ static bool authnone_marshal(AUTH *client, XDR *xdrs)
 
 /* All these unused parameters are required to keep ANSI-C from grumbling */
  /*ARGSUSED*/
-static void authnone_verf(__attribute__ ((unused)) AUTH *client)
+static void authnone_verf(attribute_unused AUTH *client)
 {
 	/* do nothing */
 }
 
  /*ARGSUSED*/
 static bool authnone_validate(
-	__attribute__ ((unused)) AUTH *client,
-	__attribute__ ((unused)) struct opaque_auth *opaque)
+	attribute_unused AUTH *client,
+	attribute_unused struct opaque_auth *opaque)
 {
 	return (true);
 }
 
  /*ARGSUSED*/
 static bool
-authnone_refresh(__attribute__ ((unused)) AUTH *client,
-		 __attribute__ ((unused)) void *dummy)
+authnone_refresh(attribute_unused AUTH *client, attribute_unused void *dummy)
 {
 	return (false);
 }
 
  /*ARGSUSED*/
-static void authnone_destroy(__attribute__ ((unused)) AUTH *client)
+static void authnone_destroy(attribute_unused AUTH *client)
 {
 	/* do nothing */
 }
