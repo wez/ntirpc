@@ -422,10 +422,13 @@ int
 svc_rqst_rearm_events(SVCXPRT *xprt, uint32_t __attribute__ ((unused)) flags)
 {
 	struct svc_rqst_rec *sr_rec = (struct svc_rqst_rec *)xprt->xp_ev;
-	int code = 0;
+	int code = EINVAL;
 
 	if (svc_rqst_init_failure())
 		return (EINVAL);
+
+	if (xprt->xp_flags & SVC_XPRT_FLAG_ADDED)
+		return (0);
 
 	if (xprt->xp_flags & SVC_XPRT_FLAG_DESTROYED)
 		return (0);
@@ -435,39 +438,49 @@ svc_rqst_rearm_events(SVCXPRT *xprt, uint32_t __attribute__ ((unused)) flags)
 		return (0);
 
 	mutex_lock(&sr_rec->mtx);
-	if (atomic_fetch_uint16_t(&xprt->xp_flags) & SVC_XPRT_FLAG_ADDED) {
+	/* assuming success */
+	atomic_set_uint16_t_bits(&xprt->xp_flags, SVC_XPRT_FLAG_ADDED);
 
-		switch (sr_rec->ev_type) {
+	switch (sr_rec->ev_type) {
 #if defined(TIRPC_EPOLL)
-		case SVC_EVENT_EPOLL:
-		{
-			struct epoll_event *ev = &xprt->ev_u.epoll.event;
+	case SVC_EVENT_EPOLL:
+	{
+		struct epoll_event *ev = &xprt->ev_u.epoll.event;
 
-			/* set up epoll user data */
-			/* ev->data.ptr = xprt; *//* XXX already set */
-			ev->events = EPOLLIN | EPOLLONESHOT;
+		/* set up epoll user data */
+		ev->events = EPOLLIN | EPOLLONESHOT;
 
-			/* rearm in epoll vector */
-			code = epoll_ctl(sr_rec->ev_u.epoll.epoll_fd,
-					 EPOLL_CTL_MOD, xprt->xp_fd, ev);
-
+		/* rearm in epoll vector */
+		code = epoll_ctl(sr_rec->ev_u.epoll.epoll_fd,
+				 EPOLL_CTL_MOD, xprt->xp_fd, ev);
+		if (code) {
+			code = errno;
+			atomic_clear_uint16_t_bits(&xprt->xp_flags,
+						   SVC_XPRT_FLAG_ADDED);
 			__warnx(TIRPC_DEBUG_FLAG_SVC_RQST,
-				"%s: %p epoll arm fd %d "
+				"%s: %p fd %d epoll arm failed "
 				"sr_rec %p epoll_fd %d "
-				"control fd pair (%d:%d) (%d, %d)",
+				"control fd pair (%d:%d) (%d)",
 				__func__, xprt, xprt->xp_fd,
 				sr_rec, sr_rec->ev_u.epoll.epoll_fd,
-				sr_rec->sv[0], sr_rec->sv[1],
-				code, errno);
-			break;
+				sr_rec->sv[0], sr_rec->sv[1], code);
+		} else {
+			__warnx(TIRPC_DEBUG_FLAG_SVC_RQST,
+				"%s: %p fd %d epoll arm "
+				"sr_rec %p epoll_fd %d "
+				"control fd pair (%d:%d)",
+				__func__, xprt, xprt->xp_fd,
+				sr_rec, sr_rec->ev_u.epoll.epoll_fd,
+				sr_rec->sv[0], sr_rec->sv[1]);
 		}
-#endif
-		default:
-			/* XXX formerly select/fd_set case, now placeholder
-			 * for new event systems, reworked select, etc. */
-			break;
-		}		/* switch */
+		break;
 	}
+#endif
+	default:
+		/* XXX formerly select/fd_set case, now placeholder
+		 * for new event systems, reworked select, etc. */
+		break;
+	}		/* switch */
 
 	mutex_unlock(&sr_rec->mtx);
 	return (code);
@@ -476,7 +489,7 @@ svc_rqst_rearm_events(SVCXPRT *xprt, uint32_t __attribute__ ((unused)) flags)
 static inline int
 svc_rqst_hook_events(SVCXPRT *xprt, struct svc_rqst_rec *sr_rec /* LOCKED */)
 {
-	int code = 0;
+	int code = EINVAL;
 
 	switch (sr_rec->ev_type) {
 #if defined(TIRPC_EPOLL)
@@ -494,27 +507,24 @@ svc_rqst_hook_events(SVCXPRT *xprt, struct svc_rqst_rec *sr_rec /* LOCKED */)
 		code = epoll_ctl(sr_rec->ev_u.epoll.epoll_fd,
 				 EPOLL_CTL_ADD, xprt->xp_fd, ev);
 		if (code) {
-			__warnx(TIRPC_DEBUG_FLAG_ERROR,
-				"%s: %p epoll add failed fd %d "
-				"sr_rec %p epoll_fd %d "
-				"control fd pair (%d:%d) (%d, %d)",
-				__func__, xprt, xprt->xp_fd,
-				sr_rec, sr_rec->ev_u.epoll.epoll_fd,
-				sr_rec->sv[0], sr_rec->sv[1],
-				code, errno);
 			code = errno;
-		} else {
-			atomic_set_uint16_t_bits(&xprt->xp_flags,
-						 SVC_XPRT_FLAG_ADDED);
-
-			__warnx(TIRPC_DEBUG_FLAG_SVC_RQST,
-				"%s: %p epoll add fd %d "
+			atomic_clear_uint16_t_bits(&xprt->xp_flags,
+						   SVC_XPRT_FLAG_ADDED);
+			__warnx(TIRPC_DEBUG_FLAG_ERROR,
+				"%s: %p fd %d epoll add failed "
 				"sr_rec %p epoll_fd %d "
-				"control fd pair (%d:%d) (%d, %d)",
+				"control fd pair (%d:%d) (%d)",
 				__func__, xprt, xprt->xp_fd,
 				sr_rec, sr_rec->ev_u.epoll.epoll_fd,
-				sr_rec->sv[0], sr_rec->sv[1],
-				code, errno);
+				sr_rec->sv[0], sr_rec->sv[1], code);
+		} else {
+			__warnx(TIRPC_DEBUG_FLAG_SVC_RQST,
+				"%s: %p fd %d epoll add "
+				"sr_rec %p epoll_fd %d "
+				"control fd pair (%d:%d)",
+				__func__, xprt, xprt->xp_fd,
+				sr_rec, sr_rec->ev_u.epoll.epoll_fd,
+				sr_rec->sv[0], sr_rec->sv[1]);
 		}
 		break;
 	}
@@ -569,6 +579,7 @@ svc_rqst_evchan_reg(uint32_t chan_id, SVCXPRT *xprt, uint32_t flags)
 	struct svc_rqst_rec *xp_ev;
 	struct rbtree_x_part *t;
 	int code;
+	uint16_t bits = SVC_XPRT_FLAG_ADDED | (flags & SVC_XPRT_FLAG_UREG);
 
 	if (chan_id == 0) {
 		if (__svc_params->ev_u.evchan.id) {
@@ -612,8 +623,8 @@ svc_rqst_evchan_reg(uint32_t chan_id, SVCXPRT *xprt, uint32_t flags)
 		mutex_unlock(&xp_ev->mtx);
 	}
 
-	if (flags & SVC_XPRT_FLAG_UREG)
-		atomic_set_uint16_t_bits(&xprt->xp_flags, SVC_XPRT_FLAG_UREG);
+	/* assuming success */
+	atomic_set_uint16_t_bits(&xprt->xp_flags, bits);
 
 	TAILQ_INSERT_TAIL(&sr_rec->xprt_q, xprt, xp_evq);
 
@@ -621,7 +632,7 @@ svc_rqst_evchan_reg(uint32_t chan_id, SVCXPRT *xprt, uint32_t flags)
 	xprt->xp_ev = sr_rec;
 
 	/* register on event channel */
-	(void)svc_rqst_hook_events(xprt, sr_rec);
+	code = svc_rqst_hook_events(xprt, sr_rec);
 
 	__warnx(TIRPC_DEBUG_FLAG_REFCNT | TIRPC_DEBUG_FLAG_SVC_RQST,
 		"%s: %p xp_refs %" PRIu32
@@ -634,7 +645,7 @@ svc_rqst_evchan_reg(uint32_t chan_id, SVCXPRT *xprt, uint32_t flags)
 	 */
 	mutex_unlock(&sr_rec->mtx);
 
-	return (0);
+	return (code);
 }
 
 /* register newxprt on an event channel, based on various
@@ -714,6 +725,8 @@ svc_rqst_handle_event(struct svc_rqst_rec *sr_rec, struct epoll_event *ev,
 				__func__, xprt, xprt->xp_refs,
 				ev->data.fd, ev->data.ptr, ev->events);
 
+			atomic_clear_uint16_t_bits(&xprt->xp_flags,
+						   SVC_XPRT_FLAG_ADDED);
 			/* take extra ref, callout will release */
 			SVC_REF(xprt, SVC_REF_FLAG_NONE);
 
