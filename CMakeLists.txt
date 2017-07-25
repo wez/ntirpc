@@ -25,6 +25,10 @@ set(NTIRPC_VERSION
 # Up scope for embedding in ganesha
 set(NTIRPC_VERSION_EMBED "${NTIRPC_VERSION}" PARENT_SCOPE)
 
+set( PACKNAME "${NTIRPC_VERSION}" )
+
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 # Install destination, if built standalone
 get_property(USE_LIB64 GLOBAL PROPERTY FIND_LIBRARY_USE_LIB64_PATHS)
 if (USE_LIB64)
@@ -202,6 +206,17 @@ configure_file(
   "${NTIRPC_BASE_DIR}/libntirpc.spec-in.cmake"
   "${PROJECT_BINARY_DIR}/libntirpc.spec"
 )
+
+# Define CPACK component (to deal with sub packages)
+set(CPACK_COMPONENTS_ALL daemon fsal headers )
+set(CPACK_COMPONENT_DAEMON_DISPLAY_NAME "libntirpc")
+
+# Include custom config and cpack module
+include(${CMAKE_SOURCE_DIR}/cmake/cpack_config.cmake)
+include(CPack)
+
+set( PKG_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}.tar.gz")
+add_custom_target(dist COMMAND ${CMAKE_MAKE_PROGRAM} package_source)
 
 ########### install files ###############
 
