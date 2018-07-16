@@ -427,7 +427,7 @@ clnt_vc_control(CLIENT *clnt, u_int request, void *info)
 		{
 			u_int32_t tmp = htonl(*(u_int32_t *) info);
 
-			*(cx->cx_u.cx_mcallc + 4 * BYTES_PER_XDR_UNIT) = tmp;
+			*(u_int32_t *)(cx->cx_u.cx_mcallc + 4 * BYTES_PER_XDR_UNIT) = tmp;
 		}
 		break;
 
@@ -450,7 +450,7 @@ clnt_vc_control(CLIENT *clnt, u_int request, void *info)
 		{
 			u_int32_t tmp = htonl(*(u_int32_t *) info);
 
-			*(cx->cx_u.cx_mcallc + 3 * BYTES_PER_XDR_UNIT) = tmp;
+			*(u_int32_t *)(cx->cx_u.cx_mcallc + 3 * BYTES_PER_XDR_UNIT) = tmp;
 		}
 		break;
 
