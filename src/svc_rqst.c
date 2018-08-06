@@ -649,7 +649,8 @@ svc_rqst_evchan_reg(uint32_t chan_id, SVCXPRT *xprt, uint32_t flags)
 
 	if ((ev_p = (struct svc_rqst_rec *)rec->ev_p) != NULL) {
 		if (ev_p == sr_rec) {
-			rpc_dplx_rui(rec);
+			if (!(flags & SVC_RQST_FLAG_LOCKED))
+				rpc_dplx_rui(rec);
 			__warnx(TIRPC_DEBUG_FLAG_SVC_RQST,
 				"%s: %p already registered evchan %d",
 				__func__, xprt, chan_id);
