@@ -482,8 +482,9 @@ svc_rqst_rearm_events(SVCXPRT *xprt)
 	if (sr_rec->ev_flags & SVC_RQST_FLAG_SHUTDOWN)
 		return (0);
 
-	SVC_REF(xprt, SVC_REF_FLAG_NONE);
 	rpc_dplx_rli(rec);
+	/* Don't take a ref on the xprt.  We take a ref in hook, and release it
+	 * in unhook. */
 
 	/* assuming success */
 	atomic_set_uint16_t_bits(&xprt->xp_flags, SVC_XPRT_FLAG_ADDED);
@@ -554,8 +555,13 @@ svc_rqst_hook_events(struct rpc_dplx_rec *rec, struct svc_rqst_rec *sr_rec)
 	{
 		struct epoll_event *ev = &rec->ev_u.epoll.event;
 
+		/* For epoll, we no longer need a ref on the xprt.  epoll uses
+		 * the FD as a key now, and the xprt is looked up, which gets a
+		 * ref for the event.  The xprt can therefore be freed while in
+		 * epoll, with no consequences. */
+
 		/* set up epoll user data */
-		ev->data.ptr = rec;
+		ev->data.fd = rec->xprt.xp_fd;
 
 		/* wait for read events, level triggered, oneshot */
 		ev->events = EPOLLIN | EPOLLONESHOT;
@@ -602,24 +608,35 @@ svc_rqst_hook_events(struct rpc_dplx_rec *rec, struct svc_rqst_rec *sr_rec)
 	return (code);
 }
 
+void
+svc_rqst_unhook(SVCXPRT *xprt)
+{
+	struct rpc_dplx_rec *rec = REC_XPRT(xprt);
+	struct svc_rqst_rec *sr_rec = (struct svc_rqst_rec *)rec->ev_p;
+	uint16_t xp_flags =
+		atomic_postclear_uint16_t_bits(&xprt->xp_flags,
+					       SVC_XPRT_FLAG_ADDED);
+
+	/* clear events */
+	if (xp_flags & SVC_XPRT_FLAG_ADDED)
+		(void)svc_rqst_unhook_events(rec, sr_rec);
+}
+
 /*
  * RPC_DPLX_LOCKED
  */
 static void
 svc_rqst_unreg(struct rpc_dplx_rec *rec, struct svc_rqst_rec *sr_rec)
 {
-	uint16_t xp_flags = atomic_postclear_uint16_t_bits(&rec->xprt.xp_flags,
-							   SVC_XPRT_FLAG_ADDED);
-
-	/* clear events */
-	if (xp_flags & SVC_XPRT_FLAG_ADDED)
-		(void)svc_rqst_unhook_events(rec, sr_rec);
+	svc_rqst_unhook(&rec->xprt);
 
 	/* Unlinking after debug message ensures both the xprt and the sr_rec
 	 * are still present, as the xprt unregisters before release.
 	 */
-	rec->ev_p = NULL;
-	svc_rqst_release(sr_rec);
+	if (rec->ev_p == sr_rec) {
+		rec->ev_p = NULL;
+		svc_rqst_release(sr_rec);
+	}
 }
 
 /*
@@ -770,11 +787,11 @@ svc_rqst_xprt_task(struct work_pool_entry *wpe)
 		/* (idempotent) xp_flags and xp_refcnt are set atomic.
 		 * xp_refcnt need more than 1 (this task).
 		 */
-		(void)clock_gettime(CLOCK_MONOTONIC_FAST, &(rec->recv.ts));
+		(void)clock_gettime(CLOCK_MONOTONIC_FAST, &rec->recv.ts);
 		(void)SVC_RECV(&rec->xprt);
 	}
 
-	/* If tests fail, log non-fatal "WARNING! already destroying!" */
+	/* Release the ref taken on the event */
 	SVC_RELEASE(&rec->xprt, SVC_RELEASE_FLAG_NONE);
 }
 
@@ -921,8 +938,9 @@ svc_rqst_clean_idle(int timeout)
 static struct rpc_dplx_rec *
 svc_rqst_epoll_event(struct svc_rqst_rec *sr_rec, struct epoll_event *ev)
 {
-	struct rpc_dplx_rec *rec = (struct rpc_dplx_rec *) ev->data.ptr;
-	uint16_t xp_flags;
+	SVCXPRT *xprt;
+	struct rpc_dplx_rec *rec;
+	uint16_t xp_flags = 0;
 
 	if (unlikely(ev->data.fd == sr_rec->sv[1])) {
 		/* signalled -- there was a wakeup on ctrl_ev (see
@@ -939,11 +957,15 @@ svc_rqst_epoll_event(struct svc_rqst_rec *sr_rec, struct epoll_event *ev)
 		return (NULL);
 	}
 
-	/* Another task may release transport in parallel.
-	 * We have a ref from being in epoll, but since epoll is one-shot, a new ref
-	 * will be taken when we re-enter epoll.  Use this ref for the processor
-	 * without taking another one.
-	 */
+	xprt = svc_xprt_lookup(ev->data.fd, NULL);
+	if (!xprt) {
+		__warnx(TIRPC_DEBUG_FLAG_SVC_RQST,
+			"%s: fd %d no associated xprt",
+			__func__, ev->data.fd);
+		return (NULL);
+	}
+	/* At this point, we have a ref on the xprt, and know it's valid */
+	rec = REC_XPRT(xprt);
 
 	/* MUST handle flags after reference.
 	 * Although another task may unhook, the error is non-fatal.

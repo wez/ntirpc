@@ -208,13 +208,14 @@ svc_xprt_lookup(int fd, svc_xprt_setup_t setup)
 	rpc_dplx_rli(rec);
 	xp_flags = atomic_clear_uint16_t_bits(&xprt->xp_flags,
 					      SVC_XPRT_FLAG_INITIAL);
+	rpc_dplx_rui(rec);
+
 	if (!(xp_flags & SVC_XPRT_FLAG_DESTROYED)) {
 		/* do not return destroyed xprts */
 		return (xprt);
 	}
 
 	/* unlock before release permits releasing here after destroy */
-	rpc_dplx_rui(rec);
 	SVC_RELEASE(xprt, SVC_RELEASE_FLAG_NONE);
 	return (NULL);
 }
