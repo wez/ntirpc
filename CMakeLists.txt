@@ -192,13 +192,13 @@ include_directories(BEFORE
 )
 
 # Find misc system libs
-find_library(LIBRT rt)   # extended Pthreads functions
+# find_library(LIBRT rt)   # extended Pthreads functions
 
 set(SYSTEM_LIBRARIES
   ${LIBTIRPC_LIBRARIES}
   ${KRB5_LIBRARIES}
   ${SYSTEM_LIBRARIES}
-  ${LIBRT}
+#   ${LIBRT}
 )
 
 if (NOT FREEBSD)
@@ -209,7 +209,6 @@ if (NOT FREEBSD)
   )
 endif (NOT FREEBSD)
 
-set(LIBNTIRPC_MAP "${PROJECT_BINARY_DIR}/src/libntirpc.map")
 # subst files (need add_custom_command for dependency, fyi)
 configure_file(
   "${NTIRPC_BASE_DIR}/src/libntirpc.map.in.cmake"

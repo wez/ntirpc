@@ -616,6 +616,7 @@ __rpcbind_is_up(void)
 		return (false);
 	sun.sun_family = AF_LOCAL;
 	strlcpy(sun.sun_path, _PATH_RPCBINDSOCK, sizeof(sun.sun_path));
+	sun.sun_len = sizeof(sun);
 
 	if (connect(sock, (struct sockaddr *)&sun, sizeof(sun)) < 0) {
 		close(sock);
@@ -1305,6 +1306,10 @@ static CLIENT *local_rpcb(const char *tag)
 	sun.sun_family = AF_LOCAL;
 	strcpy(sun.sun_path, _PATH_RPCBINDSOCK);
 	nbuf.len = SUN_LEN(&sun);
+	/*
+	 * sun.sun_len = nbuf.len;
+	 * sleep(5);
+	 */
 	nbuf.maxlen = sizeof(struct sockaddr_un);
 	nbuf.buf = &sun;
 

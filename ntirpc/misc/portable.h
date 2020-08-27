@@ -59,7 +59,7 @@ void warnx(const char *fmt, ...);
 
 #ifdef __APPLE__
 #include <sys/time.h>
-typedef unsigned int clockid_t;
+/* typedef unsigned int clockid_t; */
 #define CLOCK_MONOTONIC_FAST 6
 extern int clock_gettime(clockid_t clock, struct timespec *ts);
 #endif

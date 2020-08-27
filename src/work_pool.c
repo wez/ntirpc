@@ -204,7 +204,11 @@ work_pool_thread(void *arg)
 			"%s() %s waiting",
 			__func__, wpt->worker_name);
 
+#if defined(__APPLE__)
+		clock_gettime(CLOCK_REALTIME, &ts);
+#else
 		clock_gettime(CLOCK_REALTIME_FAST, &ts);
+#endif
 		timespec_addms(&ts, pool->timeout_ms);
 
 		wpt->wakeup = false;

@@ -44,8 +44,7 @@
 #include <rpc/auth.h>
 #include <rpc/auth_gss.h>
 #include <rpc/rpc.h>
-#include <gssapi/gssapi.h>
-#include <gssapi/gssapi_ext.h>
+#include <GSS/gssapi.h>
 
 /* additional space needed for encoding */
 #define RPC_SLACK_SPACE 1024

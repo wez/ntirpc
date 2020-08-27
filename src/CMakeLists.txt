@@ -105,7 +105,7 @@ target_link_libraries(ntirpc ${SYSTEM_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 
 # set library version and symbol namespace(s) from gen'd map file
 set_target_properties(ntirpc PROPERTIES LINK_FLAGS
-	"-Wl,--version-script=${PROJECT_BINARY_DIR}/libntirpc.map"
+	"-Wl,-exported_symbols_list,${PROJECT_BINARY_DIR}/libntirpc.map"
   VERSION ${NTIRPC_VERSION}
   SOVERSION "${NTIRPC_MAJOR_VERSION}${NTIRPC_MINOR_VERSION}"
   )

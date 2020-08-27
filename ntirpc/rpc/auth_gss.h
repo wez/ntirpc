@@ -38,7 +38,7 @@
 #define _TIRPC_AUTH_GSS_H
 
 #include <rpc/clnt.h>
-#include <gssapi/gssapi.h>
+#include <GSS/gssapi.h>
 
 /* RPCSEC_GSS control procedures. */
 typedef enum {

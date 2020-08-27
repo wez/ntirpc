@@ -646,7 +646,7 @@ clnt_req_wait_reply(struct clnt_req *cc)
 		return (RPC_SUCCESS);
 	}
 
-	(void)clock_gettime(CLOCK_REALTIME_FAST, &ts);
+	(void)clock_gettime(CLOCK_REALTIME, &ts);
 	timespecadd(&ts, &cc->cc_timeout, &ts);
 	code = cond_timedwait(&cc->cc_we.cv, &cc->cc_we.mtx, &ts);
 

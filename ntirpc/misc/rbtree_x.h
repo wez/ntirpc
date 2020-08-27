@@ -6,13 +6,14 @@
 #include <inttypes.h>
 #include <misc/stdio.h>
 #include <misc/rbtree.h>
+#include <os/lock.h>
 #include <rpc/types.h>
 
 struct rbtree_x_part {
 	CACHE_PAD(0);
 	pthread_rwlock_t lock;
 	pthread_mutex_t mtx;
-	pthread_spinlock_t sp;
+	os_unfair_lock_t sp;
 	void *u1;
 	void *u2;
 	struct opr_rbtree t;

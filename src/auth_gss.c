@@ -50,7 +50,7 @@
 #include <rpc/auth_gss.h>
 #include <rpc/clnt.h>
 #include <netinet/in.h>
-#include <gssapi/gssapi.h>
+#include <GSS/gssapi.h>
 
 static void authgss_nextverf(AUTH *auth);
 static bool authgss_marshal(AUTH *auth, XDR *xdrs);

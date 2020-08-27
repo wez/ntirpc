@@ -32,6 +32,12 @@
  * Copyright (c) 1986-1991 by Sun Microsystems Inc.
  */
 
+#ifdef __APPLE__
+#define _DARWIN_C_SOURCE
+#define __APPLE_USE_RFC_3542
+#include <netinet/in.h>
+#endif
+
 #include "config.h"
 
 /*
@@ -603,6 +609,11 @@ svc_dg_rendezvous_ops(SVCXPRT *xprt)
 	xprt->xp_ops = &ops;
 	mutex_unlock(&ops_lock);
 }
+
+#ifdef __APPLE__
+#define SOL_IP IPPROTO_IP
+#define SOL_IPV6 IPPROTO_IPV6
+#endif
 
 /*
  * Enable reception of PKTINFO control messages

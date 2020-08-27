@@ -66,6 +66,11 @@
 #include <misc/opr.h>
 #include "svc_ioq.h"
 
+#if !defined(UIO_MAXIOV) && defined(__APPLE__)
+/* On macOS, sys/uio.h only defines UIO_MAXIOV if defined(KERNEL) */
+#define UIO_MAXIOV 1024
+#endif
+
 #define LAST_FRAG ((u_int32_t)(1 << 31))
 #define LAST_FRAG_XDR_UNITS ((LAST_FRAG - 1) & ~(BYTES_PER_XDR_UNIT - 1))
 #define MAXALLOCA (256)
