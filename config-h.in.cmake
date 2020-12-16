@@ -21,6 +21,9 @@
 #cmakedefine USE_RPC_RDMA 1
 #cmakedefine USE_LTTNG_NTIRPC 1
 
+#cmakedefine HAVE_STRLCAT 1
+#cmakedefine HAVE_STRLCPY 1
+
 /* Package stuff */
 #define PACKAGE "libntirpc"
 #define PACKAGE_BUGREPORT ""
