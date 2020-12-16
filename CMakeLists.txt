@@ -133,8 +133,12 @@ set(ALLOCATOR "jemalloc" CACHE STRING
   "specify the memory allocator to use: jemalloc|tcmalloc|libc")
 
 # Find packages and libs we need for building
+include(CheckSymbolExists)
 include(CheckIncludeFiles)
 include(TestBigEndian)
+
+check_symbol_exists(strlcat "string.h" HAVE_STRLCAT)
+check_symbol_exists(strlcpy "string.h" HAVE_STRLCPY)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   set(LINUX ON)
