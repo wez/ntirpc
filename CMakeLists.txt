@@ -144,6 +144,10 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
   set(FREEBSD ON)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
 
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+  set(DARWIN ON)
+endif()
+
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   set(WINDOWS ON)
   if(${CMAKE_CXX_COMPILER_ID} MATCHES "MSVC")
@@ -163,7 +167,7 @@ else()
 endif(${BIGENDIAN})
 
 find_package(Threads REQUIRED)
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+if(DARWIN)
   set(TIRPC_EPOLL ON)
 else()
   find_package(EPOLL REQUIRED)
@@ -205,7 +209,7 @@ set(SYSTEM_LIBRARIES
 #   ${LIBRT}
 )
 
-if (NOT FREEBSD)
+if (NOT FREEBSD AND NOT DARWIN)
   find_package(NSL) # sockets
   set(SYSTEM_LIBRARIES
     ${SYSTEM_LIBRARIES}
